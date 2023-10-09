@@ -1,0 +1,28 @@
+<DataIntegrationTask>
+    <Parameters>
+        <Parameter name="FileNamePattern" type="string" value="abc_group_csv" />
+    </Parameters>
+    <Sources>
+        <Source name="NAS_Source" connector="nas_connector" path="/path/to/csv/files/{$FileNamePattern}*.csv" />
+    </Sources>
+    <Targets>
+        <Target name="S3_Target" connector="s3_connector" path="/path/to/s3/destination" />
+    </Targets>
+    <Mappings>
+        <Mapping name="Process_CSV_Files">
+            <Source name="NAS_Source">
+                <Field name="filename" type="string" />
+                <Field name="record-text" type="string" />
+            </Source>
+            <Expression name="Concatenate_Rows">
+                <InputField name="record" sourceField="NAS_Source.record-text" />
+                <ExpressionText>record || '|'</ExpressionText>
+                <OutputField name="concatenated_record" type="string" />
+            </Expression>
+            <Target name="S3_Target">
+                <Field name="filename" sourceField="NAS_Source.filename" />
+                <Field name="record-text" sourceField="Concatenate_Rows.concatenated_record" />
+            </Target>
+        </Mapping>
+    </Mappings>
+</DataIntegrationTask>
